@@ -73,16 +73,17 @@ def runActions(m0,m1,m2,m3,m4,esplon,N):
     rewardSum=0
     QnaList=[]#list for Qna in five actions
     
-    #Test reward the first steps for all 5 actions
-    '''
-    for i in range(5):
-        actions[i].R = rewardGenerator(i)#actions i get the reward
-        actions[i].update(actions[i].R,i)#update the actions status
-        print('step '+str(i)+' selected action is:'+str(i)+' and its reward is '+str(actions[i].R)+'and Qna is'+str(actions[i].Qna))
-    '''
+    #Test reward the first 20 steps for each action
+    for i in range(20):
+        for j in range(5):
+            actions[j].R = rewardGenerator(j)#actions j get the reward
+            actions[j].update(actions[j].R)#update the actions status
+            data[i*j]=actions[j].R
+            #print('step '+str(i)+' selected action is:'+str(j)+' and its reward is '+str(actions[j].R)+'and Qna is'+str(actions[j].Qna))
+        
     #for a in actions:
     #    print('all the actions'+str(a.Qna)) 
-    for i in range(N):
+    for i in range(100,N):
         
         #if i==0:# for the first few steps, select randomly, researved for another initiliazation 
         #    j=np.random.choice(5)#choose a random number from 0 to 4
@@ -92,7 +93,7 @@ def runActions(m0,m1,m2,m3,m4,esplon,N):
         p = np.random.random()
         if p<esplon:
             j=np.random.choice(5)#choose a random number from 0 to 4
-            print('step '+str(i)+' randomly selected action for p<esplon is:'+str(j))
+            #print('step '+str(i)+' randomly selected action for p<esplon is:'+str(j))
         else:
             #possible that 0,2,4 are zero, maximum
             #maxQnaIndex=np.flatnonzero([a.Qna for a in actions]==np.max([a.Qna for a in actions])) # find the index of max Qna actions
@@ -130,7 +131,7 @@ def runActions(m0,m1,m2,m3,m4,esplon,N):
 		    #for the plot
             #record the reward for each step
             data[i]=actions[j].R
-            print('This is step'+str(i)+'action'+str(j)+'has been selected.Reward is:'+str(actions[j].R)+'.Average reward is'+str(actions[j].sampleAverage) +'.k is '+str(actions[j].k)+'.N is'+str(actions[j].N))
+            #print('This is step'+str(i)+'action'+str(j)+'has been selected.Reward is:'+str(actions[j].R)+'.Average reward is'+str(actions[j].sampleAverage) +'.k is '+str(actions[j].k)+'.N is'+str(actions[j].N))
             rewardSum+=actions[j].R
             
     averageReward= rewardSum/N  
@@ -164,7 +165,7 @@ if __name__=='__main__':
     averageReward1run=np.zeros(1000)#not to set to np.empty
     averageRewardSum=np.zeros(1000)
     averageRewardAllRun=np.zeros(1000)
-    runs=1#runs
+    runs=1000#runs
     N=1000#steps
     '''
     averageReward1run=runActions(0,1,2,3,4,0.01,1000)
@@ -178,7 +179,7 @@ if __name__=='__main__':
     print(averageRewardAllRun/2)
     '''
     for i in range(runs):
-        averageReward1run=runActions(0,1,2,3,4,0.1,1000)
+        averageReward1run=runActions(0,1,2,3,4,0,1000)
         averageRewardSum=np.add(averageRewardSum,averageReward1run)
         #np.append(averageReward1,averageReward)
     
@@ -190,7 +191,7 @@ if __name__=='__main__':
     plt.plot(range(1000),averageRewardAllRun,linewidth=1,color='r')
     '''
     for i in range(runs):
-        averageRewardAll1=runActions(0,1,2,3,4,0,1000)
+        averageRewardAll1=runActions(0,1,2,3,4,0.05,1000)
         averageRewardSum1=np.add(averageRewardSum1,averageRewardAll1)
     
     averageRewardAllRun1=averageRewardSum1/runs
@@ -205,7 +206,7 @@ if __name__=='__main__':
     #plt.ylim(bottom=-1, top=10)
     plt.xlabel('Steps')
     plt.ylabel('Average Rewards')
-    plt.title('Epsilon-Greedy Algorithm with Epsilon=0.1')
+    plt.title('Epsilon-Greedy Algorithm with Epsilon=0')
 
     #get handles and labels
     handles, labels = plt.gca().get_legend_handles_labels()
