@@ -1,0 +1,226 @@
+#from matplotlib.widgets import RadioButtons
+#https://www.geeksforgeeks.org/epsilon-greedy-algorithm-in-reinforcement-learning/
+import numpy as np
+#import matlablib.pyplot as plt
+import matplotlib.pyplot as plt
+from numpy.random import default_rng
+
+def normalValue(mu,sigma):
+    rng=default_rng()
+    val=rng.standard_normal()#generate the normal random values
+    x=sigma*val+mu
+    return x
+
+def normalValues(mu,sigma,num):
+    rng=default_rng()
+    valsList=[]
+    x=0
+    for i in range(num):
+        val=rng.standard_normal()#generate the normal random values
+        x=sigma*val+mu
+        valsList.append(x)
+    #return valsList
+
+#get the rewards from the corresponding actions
+def rewardGenerator(machineNumber):
+    if machineNumber==0:
+        mu, sigma = 0.1, 1 # mean and standard deviation
+        return normalValue(mu, sigma)#actions 0 get the k reward
+    elif machineNumber==1:
+        mu, sigma = -0.7, 1 # mean and standard deviation
+        return normalValue(mu, sigma)#actions 0 get the k reward
+    elif machineNumber==2:
+        mu, sigma = 0.8, 1 # mean and standard deviation
+        return normalValue(mu, sigma)#actions 0 get the k reward
+    elif machineNumber==3:
+        mu, sigma = 0.3, 1 # mean and standard deviation
+        return normalValue(mu, sigma)#actions 0 get the k reward
+    elif machineNumber==4:
+        mu, sigma = 0.5, 1 # mean and standard deviation
+        return normalValue(mu, sigma)#actions 0 get the k reward
+
+class Actions:
+    def __init__(self,Qna):
+        self.Qna=0#estimated value of action a at time step N, sample average stimate of q*(a)
+        self.R=0#rewards at Nth time
+        self.N=0#step
+        self.k=0# have been selected k times
+        self.sampleAverage=0 #sampleAverage:sum(1tok-1)/(k-1)
+        self.sumk=0 #sum of k
+
+	  #choose a random action
+    #def choose(self):
+	  #    retern np.random.randn()+self.Qna
+		
+    #update the estimQnaated reward:
+    def update(self,R):
+        self.N +=1# Step N+1
+        self.k +=1# have been selected k+1 times
+        self.sumk=self.sumk+R
+        if self.k>0:
+            self.sampleAverage=self.sumk/(self.k) #sum(1tok-1)/(k-1)
+        
+        
+        self.Qna=self.Qna+(1/self.k)*(self.R-self.Qna)
+        
+	
+	# running the actions for machine0 to machine 5
+def runActions(m0,m1,m2,m3,m4,esplon,N):
+    actions=[Actions(m0),Actions(m1),Actions(m2),Actions(m3),Actions(m4)]#One step, five actions
+    data=np.zeros(N)
+    accumuletSumList=[]
+    accumulateR=0
+    rewardSum=0
+    QnaList=[]#list for Qna in five actions
+    
+    #Test reward the first steps for all 5 actions
+    '''
+    for i in range(5):
+        actions[i].R = rewardGenerator(i)#actions i get the reward
+        actions[i].update(actions[i].R,i)#update the actions status
+        print('step '+str(i)+' selected action is:'+str(i)+' and its reward is '+str(actions[i].R)+'and Qna is'+str(actions[i].Qna))
+    '''
+    #for a in actions:
+    #    print('all the actions'+str(a.Qna)) 
+    for i in range(N):
+        
+        #if i==0:# for the first few steps, select randomly, researved for another initiliazation 
+        #    j=np.random.choice(5)#choose a random number from 0 to 4
+            #print('step '+str(i)+' selected action for first step is:'+str(j))
+        #else:
+            #epsilon greedy
+        p = np.random.random()
+        if p<esplon:
+            j=np.random.choice(5)#choose a random number from 0 to 4
+            print('step '+str(i)+' randomly selected action for p<esplon is:'+str(j))
+        else:
+            #possible that 0,2,4 are zero, maximum
+            #maxQnaIndex=np.flatnonzero([a.Qna for a in actions]==np.max([a.Qna for a in actions])) # find the index of max Qna actions
+            #print('maxQna:'+str(maxQnaIndex))
+            
+            #j=np.random.choice(maxQnaIndex)#choose a random number from among the max Qna
+            #print('j is chosen as:'+str(j))
+
+            #QnaList[:]=[a.Qna for a in actions]
+            #QnaList=[a.Qna for a in actions]## Qna is updated every steps, so list it every step, iterate to initialize the list
+            #maxQnaIndex=np.argwhere(QnaList==np.amax(QnaList))
+            #j=np.random.choice(maxQnaIndex.flatten().tolist())#choose a random number from among the max Qna
+            sampleAverageList=[a.sampleAverage for a in actions]## Qna is updated every steps, so list it every step, iterate to initialize the list
+            maxSampleAverageIndex=np.argwhere(sampleAverageList==np.amax(sampleAverageList))
+            j=np.random.choice(maxSampleAverageIndex.flatten().tolist())#choose a random number from among the maxSampleAverageIndex 
+            #j=np.argmax([a.Qna for a in actions])#choose the action whose Qna as the largest one,
+            #In case of multiple occurrences of the maximum values, the indices corresponding to the first occurrence are returned.
+            #print('step '+str(i)+' selected action for p>esplon is:'+str(j))
+            
+        
+            #get the rewards from the corresponding actions
+            if j==0:  
+                actions[j].R = rewardGenerator(j)#actions 0 get the k reward
+            elif j==1:
+                actions[j].R = rewardGenerator(j)#actions 1 get the k reward
+            elif j==2:
+                actions[j].R = rewardGenerator(j)#actions 2 get the k reward
+            elif j==3:
+                actions[j].R = rewardGenerator(j)#actions 3 get the k reward
+            elif j==4:
+                actions[j].R = rewardGenerator(j)#actions 4 get the k reward
+            #print('action '+str(j)+' is selected.'+'and reward is'+str(actions[j].R))
+            actions[j].update(actions[j].R)
+    
+		    #for the plot
+            #record the reward for each step
+            data[i]=actions[j].R
+            print('This is step'+str(i)+'action'+str(j)+'has been selected.Reward is:'+str(actions[j].R)+'.Average reward is'+str(actions[j].sampleAverage) +'.k is '+str(actions[j].k)+'.N is'+str(actions[j].N))
+            rewardSum+=actions[j].R
+            
+    averageReward= rewardSum/N  
+    cumulative_average=np.cumsum(data)/(np.arange(N)+1)#average cumulation of sum of the rewards array after N steps
+    # plot moving average reward array
+    '''
+    plt.plot(cumulative_average,linewidth=1,color='b')
+    plt.plot(np.ones(N)*0.1)
+    plt.plot(np.ones(N)*(-0.7))
+    plt.plot(np.ones(N)*0.8)
+    plt.plot(np.ones(N)*0.3)
+    plt.plot(np.ones(N)*0.5)
+    plt.xscale('log')
+    plt.show()
+    '''
+    #plt.plot(range(N),cumulative_average,linewidth=1,color='b')
+    '''
+    print('sumlate sum is(last number of np.cumsum):')
+    print(np.cumsum(data)[N-1])
+    print('cumulateive arerage:')
+    print(cumulative_average)
+    print('averageReward:')
+    print(averageReward)
+    '''
+
+    #return cumulative_average
+    return data# return the history of rewards for N steps
+
+if __name__=='__main__':
+
+    averageReward1run=np.zeros(1000)#not to set to np.empty
+    averageRewardSum=np.zeros(1000)
+    averageRewardAllRun=np.zeros(1000)
+    runs=1#runs
+    N=1000#steps
+    '''
+    averageReward1run=runActions(0,1,2,3,4,0.01,1000)
+    print('averageReward1run:')
+    print(averageReward1run)
+    averageRewardSum=np.add(averageRewardSum,averageReward1run)
+    print('averageRewardSum:')
+    print(averageRewardSum)
+    averageRewardAllRun=averageRewardSum/2
+    print('averageReward all run /2:')
+    print(averageRewardAllRun/2)
+    '''
+    for i in range(runs):
+        averageReward1run=runActions(0,1,2,3,4,0.1,1000)
+        averageRewardSum=np.add(averageRewardSum,averageReward1run)
+        #np.append(averageReward1,averageReward)
+    
+    averageRewardAllRun=averageRewardSum/runs
+    #print('averageRewardSum')
+    #print(averageRewardSum)
+    #print('averageRewardAllRun')
+    #print(averageRewardAllRun)
+    plt.plot(range(1000),averageRewardAllRun,linewidth=1,color='r')
+    '''
+    for i in range(runs):
+        averageRewardAll1=runActions(0,1,2,3,4,0,1000)
+        averageRewardSum1=np.add(averageRewardSum1,averageRewardAll1)
+    
+    averageRewardAllRun1=averageRewardSum1/runs
+    '''
+    #plt.plot(averageRewardSum1,linewidth=1,color='g')
+    plt.plot(np.ones(N)*0.1,label='Action0(Mean=0.1)',color='r')
+    plt.plot(np.ones(N)*(-0.7),label='Action1(Mean=-0.7)',color='g')
+    plt.plot(np.ones(N)*0.8,label='Action2(Mean=0.8)',color='b')
+    plt.plot(np.ones(N)*0.3,label='Action3(Mean=0.3)',color='purple')
+    plt.plot(np.ones(N)*0.5,label='Action4(Mean=0.5)',color='y')
+    #plt.xscale('log')
+    #plt.ylim(bottom=-1, top=10)
+    plt.xlabel('Steps')
+    plt.ylabel('Average Rewards')
+    plt.title('Epsilon-Greedy Algorithm with Epsilon=0.1')
+
+    #get handles and labels
+    handles, labels = plt.gca().get_legend_handles_labels()
+
+    #specify order of items in legend
+    order = [0,1,2,3,4]
+
+    #add legend to plot
+    plt.legend([handles[idx] for idx in order],[labels[idx] for idx in order]) 
+
+    
+    #plt.legend(['Action0(Mean=0.1)','Action1(Mean=-0.7)','Action2(Mean=0.8)','Action3(Mean=0.3)','Action4(Mean=0.5)'],loc='lower right')
+    plt.show()
+    #plt.plot(np.averageReward1/(10))
+    #for i in range(1):
+    #    action2=runActions(0,1,2,3,4,0.1,100)
+	
+
